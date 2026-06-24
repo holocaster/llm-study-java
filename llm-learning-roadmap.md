@@ -39,23 +39,23 @@ by a single local store (start with a JSON file; swap to SQLite later if wanted)
 - [x] **7. Provider swap** — re-point exercises 5-6 at Anthropic's Messages API.
   Goal: see what's API-specific (shapes, field names) vs. fundamental (the loop).
 
-- [ ] **7b. Route through OpenRouter** — take your #1 OpenAI code, change only the
+- [x] **7b. Route through OpenRouter** — take your #1 OpenAI code, change only the
   base URL, the auth header, and the `model` string (e.g. `openai/gpt-4o` ->
   `anthropic/claude-opus-4-8`). Same OpenAI-compatible `messages`/roles shape.
   Goal: a gateway turns the #7 provider swap into a one-line config change
   instead of a code change. The opposite lesson to #7 — feel both.
 
-- [ ] **8. Responses API by hand** — re-point #1 and #5 at `POST /v1/responses`.
+- [x] **8. Responses API by hand** — re-point #1 and #5 at `POST /v1/responses`.
   Note the shape change: `input` instead of `messages`, an `output` array
   instead of `choices`, tool calls as output items.
   Goal: same loop, newer API generation — field names move, fundamentals don't.
 
-- [ ] **9. Server-side conversation state** — let the server own history via
+- [x] **9. Server-side conversation state** — let the server own history via
   `previous_response_id` (or the Conversations API) instead of resending it.
   Contrast with #2, where *you* owned the `List<Message>`.
   Goal: managed state vs. client-owned state — and the trade-offs.
 
-- [ ] **10. Tracing by hand** — wrap each model call and tool execution in your
+- [x] **10. Tracing by hand** — wrap each model call and tool execution in your
   #6 loop in a *span*: start/end time, inputs, outputs, parent link. Print
   them as nested JSON.
   Goal: a "trace" is just structured logging of the loop. (This is what the
