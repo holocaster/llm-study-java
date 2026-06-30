@@ -4,3 +4,6 @@ target/
 *.iml
 .vscode/
 .env
+session.json
+debug.log
+docs/
