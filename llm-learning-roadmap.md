@@ -63,43 +63,51 @@ by a single local store (start with a JSON file; swap to SQLite later if wanted)
 
 ## Beyond the basics (still raw HttpClient)
 
-- [ ] **11. Embeddings + semantic search** — call the embeddings endpoint, store
+- [x] **11. Embeddings + semantic search** — call the embeddings endpoint, store
   vectors for your notes, rank by cosine similarity to a query.
   Goal: meaning as vectors; nearest-neighbour search.
 
-- [ ] **12. RAG** — retrieve top-k notes by embedding similarity, stuff them into
+- [x] **12. RAG** — retrieve top-k notes by embedding similarity, stuff them into
   the prompt, answer grounded in them (with citations).
   Goal: give the model knowledge it wasn't trained on.
 
-- [ ] **13. Tokens + context window** — count tokens, watch the window fill,
+- [x] **13. Tokens + context window** — count tokens, watch the window fill,
   truncate or summarize old turns to stay under the limit.
   Goal: context is finite — you manage what fits.
 
-- [ ] **14. Robustness** — handle errors, 429 rate limits, and timeouts with
+- [x] **14. Robustness** — handle errors, 429 rate limits, and timeouts with
   retry + exponential backoff.
   Goal: real calls fail; a production loop copes.
 
-- [ ] **15. Multimodal** — send an image to a vision-capable model and get a
+- [x] **15. Multimodal** — send an image to a vision-capable model and get a
   description; optionally combine with a tool.
   Goal: LLMs aren't only text.
 
-- [ ] **16. Evals** — score outputs against expected results: exact/keyword match
+- [x] **15b. Image** — generate an image from a prompt (`/v1/images/generations`),
+  then feed it back into the chat endpoint as an inline image part and describe it.
+  Goal: image generation (its own endpoint) vs. vision input (a part in `content`).
+
+- [x] **15c. Video** — sample frames from a video and send them as multiple image
+  parts in one message; the model reasons over the sequence.
+  Goal: chat LLMs don't ingest video directly — video is many stills.
+
+- [x] **16. Evals** — score outputs against expected results: exact/keyword match
   plus an LLM-as-judge for open-ended answers.
   Goal: how you *know* a prompt or model change actually helped.
 
 ## MCP stage
 
-- [ ] **17. MCP server** — wrap your task tools as an MCP server (stdio) using
+- [x] **17. MCP server** — wrap your task tools as an MCP server (stdio) using
   the official MCP Java SDK.
   Goal: tools as a reusable, process-external capability.
 
-- [ ] **18. MCP client** — connect to your server, list tools, call them; then
+- [x] **18. MCP client** — connect to your server, list tools, call them; then
   feed those MCP tools into your hand-built agent loop from #6.
   Goal: MCP decouples *who provides tools* from *who runs the agent*.
 
 ## Framework stage
 
-- [ ] **19. Rebuild with LangChain4j (or Spring AI)** — same assistant, but the
+- [x] **19. Rebuild with LangChain4j (or Spring AI)** — same assistant, but the
   framework owns the loop, tool binding, and memory.
   Goal: appreciate exactly what the framework abstracts away — because you
   built it by hand first.

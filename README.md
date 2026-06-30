@@ -7,9 +7,12 @@ Learning project: calling an LLM in pure Java.
 - Maven 3.8+
 
 ## Build and run
+Each roadmap step is a standalone `main` class. Build, then run one by its class:
 ```bash
 mvn package
-mvn exec:java -Dexec.mainClass=com.example.llm.Main
-# or
-java -cp target/classes com.example.llm.Main
+mvn exec:java -Dexec.mainClass=br.com.llm.study.roadmap._1_HelloCompletion.HelloCompletion
+```
+`mvn exec:java` does not read `.env`; export the keys first:
+```bash
+set -a; . ./.env; set +a
 ```
