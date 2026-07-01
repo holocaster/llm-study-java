@@ -32,7 +32,6 @@ public class Tokens {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(
       DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-
   static void main() throws IOException, InterruptedException {
 
     Scanner scanner = new Scanner(System.in);
@@ -93,10 +92,6 @@ public class Tokens {
     }
   }
 
-  /**
-   * Local estimate of promptTokens for a gpt-4o chat request: every message costs
-   * 3 priming tokens plus its role and content, and the reply is primed with 3 more.
-   */
   private static int estimatePromptTokens(List<Message> messages, Encoding encoding) {
     int total = 0;
     for (Message message : messages) {

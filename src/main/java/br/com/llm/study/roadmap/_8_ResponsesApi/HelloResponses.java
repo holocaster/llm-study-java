@@ -12,9 +12,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
 
-// #8 part 1: #1 Hello completion re-pointed at the Responses API.
-// Same loop, newer API generation: "input" instead of "messages",
-// "output" array instead of "choices".
 public class HelloResponses {
 
     private static final String OPENAI_API_KEY = Objects.requireNonNull(System.getenv("OPENAI_API_KEY"));
@@ -23,7 +20,7 @@ public class HelloResponses {
             .registerModule(new JavaTimeModule());
 
     static void main() {
-        // "input" can be a plain string here (vs. the "messages" array in #1).
+
         final String payload = """
             {
                 "model": "gpt-4o-mini",
@@ -53,9 +50,6 @@ public class HelloResponses {
 
             ResponsesResponse parsed = OBJECT_MAPPER.readValue(response.body(), ResponsesResponse.class);
 
-            // The text lives in the "message" item, not necessarily output[0]
-            // (a "reasoning" item can come first). There is no top-level
-            // "output_text" in the raw API - that is an SDK convenience.
             String text = parsed.output().stream()
                     .filter(item -> "message".equals(item.type()))
                     .flatMap(item -> item.content().stream())

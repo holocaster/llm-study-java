@@ -26,15 +26,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * #18 -- the #6 agent loop, but the tools are NOT hand-wired here. The client launches the #17 MCP
- * server as a subprocess, asks it what tools exist (listTools), and EXECUTES each tool call by
- * forwarding it to the server (callTool). There is no TaskStore and no switch in this file -- the
- * store lives in the server process.
- * <p>
- * The lesson: who PROVIDES the tools (the MCP server) is decoupled from who RUNS the agent (this
- * loop). The only thing that changed from #6 is the source and execution of tools.
- */
 public class TaskMcpClient {
 
   private static final String OPENAI_API_KEY = Objects.requireNonNull(
@@ -46,7 +37,7 @@ public class TaskMcpClient {
   private static final int MAX_TURNS = 10;
 
   static void main() throws IOException, InterruptedException {
-    // Launch the #17 server as a subprocess, reusing this JVM's java binary and classpath.
+
     ServerParameters params = ServerParameters
         .builder(System.getProperty("java.home") + "/bin/java")
         .args("-cp", System.getProperty("java.class.path"), SERVER_MAIN)
@@ -59,7 +50,6 @@ public class TaskMcpClient {
 
       mcp.initialize();
 
-      // Discover the tools at runtime and translate MCP tool shape -> OpenAI tool shape.
       List<McpSchema.Tool> mcpTools = mcp.listTools().tools();
       List<ChatCompletionRequest.Tool> openAiTools = mcpTools.stream()
           .map(t -> ChatCompletionRequest.Tool.function(t.name(), t.description(), t.inputSchema()))
@@ -77,9 +67,6 @@ public class TaskMcpClient {
     }
   }
 
-  /**
-   * The #6 loop: call the model, run any tool calls via MCP, repeat until it stops.
-   */
   private static void runLoop(McpSyncClient mcp, List<Message> messages,
       List<ChatCompletionRequest.Tool> tools) throws IOException, InterruptedException {
     for (int turn = 0; turn < MAX_TURNS; turn++) {
@@ -117,9 +104,6 @@ public class TaskMcpClient {
     });
   }
 
-  /**
-   * MCP tool results are a list of content blocks; pull out the text ones.
-   */
   private static String textOf(McpSchema.CallToolResult result) {
     return result.content().stream()
         .filter(McpSchema.TextContent.class::isInstance)

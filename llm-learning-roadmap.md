@@ -18,7 +18,7 @@ by a single local store (start with a JSON file; swap to SQLite later if wanted)
 - [x] **2. Conversation state** — maintain a `List<Message>` across turns.
   Goal: the model is stateless; *you* own the history.
 
-- [ ] **2b. Prompt engineering** — keep the same call, vary only the prompt:
+- [x] **2b. Prompt engineering** — keep the same call, vary only the prompt:
   a strong system message, few-shot examples, and an explicit "think step
   by step". Compare outputs on one hard task across the variations.
   Goal: the prompt is a lever, not boilerplate — structure changes quality
@@ -28,7 +28,7 @@ by a single local store (start with a JSON file; swap to SQLite later if wanted)
   then parse the SSE stream token-by-token.
   Goal: feel what streaming actually is.
 
-- [ ] **3b. Reasoning / thinking** — turn on a reasoning model's thinking
+- [x] **3b. Reasoning / thinking** — turn on a reasoning model's thinking
   (`reasoning_effort` on OpenAI, extended thinking + budget on Anthropic).
   Read the reasoning-token count off `usage`; watch latency and cost move.
   Goal: "think harder" is a dial with a price — know when it's worth paying.
@@ -47,7 +47,7 @@ by a single local store (start with a JSON file; swap to SQLite later if wanted)
   calling tools.
   Goal: an "agent" is just that loop. No framework needed.
 
-- [ ] **6b. tool_choice + parallel calls** — extend #6: force a tool
+- [x] **6b. tool_choice + parallel calls** — extend #6: force a tool
   (`tool_choice`), forbid tools, and handle a turn where the model returns
   *several* tool_calls at once — execute the batch, append all results.
   Goal: the loop must treat tool calls as a list, not a single call —
@@ -92,7 +92,7 @@ by a single local store (start with a JSON file; swap to SQLite later if wanted)
   truncate or summarize old turns to stay under the limit.
   Goal: context is finite — you manage what fits.
 
-- [ ] **13b. Usage + cost accounting** — read the `usage` object on every
+- [x] **13b. Usage + cost accounting** — read the `usage` object on every
   response (prompt / completion / cached tokens), multiply by per-token
   price, and print a running cost for a whole #6 agent run.
   Goal: every call has a bill — make it visible, per turn and per loop.
@@ -101,7 +101,7 @@ by a single local store (start with a JSON file; swap to SQLite later if wanted)
   retry + exponential backoff.
   Goal: real calls fail; a production loop copes.
 
-- [ ] **14b. Prompt caching** — mark a long, stable prefix as cacheable
+- [x] **14b. Prompt caching** — mark a long, stable prefix as cacheable
   (cache breakpoints) and re-run; confirm cached tokens in `usage` and the
   latency drop on the second call.
   Goal: repeated context is cheap if you tell the provider it's reusable.

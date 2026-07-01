@@ -40,7 +40,6 @@ public class ConversationState {
         var responseFormat = ChatCompletionRequest.ResponseFormat.jsonSchema(
                 new ChatCompletionRequest.JsonSchema("question", true, schema));
 
-        // We own the history: this list grows every turn.
         List<Message> messages = new ArrayList<>();
         messages.add(systemMessage);
         messages.add(userMessage);
@@ -51,7 +50,7 @@ public class ConversationState {
         boolean isOver = false;
         while (!isOver) {
             try {
-                // Rebuild the request each turn from the current history.
+
                 ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest(
                         "gpt-4o-mini", messages, null, null, null, responseFormat);
                 final String payload = OBJECT_MAPPER.writeValueAsString(chatCompletionRequest);

@@ -18,14 +18,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * #17 -- the same task tools from #5/#6, now exposed as an MCP server over stdio. The agent LOOP is
- * gone from here; this process only OWNS the tools. Any MCP client (your #18 loop, Claude Desktop,
- * an IDE) launches this as a subprocess and calls them.
- * <p>
- * stdio is the protocol channel: stdout carries JSON-RPC, so NEVER println to stdout here -- log to
- * System.err only.
- */
 public class TaskMcpServer {
 
   private static final TaskStore STORE = new TaskStore();
@@ -61,7 +53,7 @@ public class TaskMcpServer {
 
     McpSyncServer server = McpServer.sync(transport)
         .serverInfo("task-store", "1.0.0")
-        // Required: the server must advertise the tools capability or addTool() throws.
+
         .capabilities(McpSchema.ServerCapabilities.builder().tools(true).build())
         .build();
 
@@ -90,12 +82,9 @@ public class TaskMcpServer {
         }));
 
     System.err.println("task-store MCP server ready on stdio");
-    new CountDownLatch(1).await(); // long-running: block until the client disconnects
+    new CountDownLatch(1).await();
   }
 
-  /**
-   * Wraps a name + JSON schema + a plain String-returning body into a sync tool spec.
-   */
   private static SyncToolSpecification tool(
       String name, String description, Map<String, Object> schema,
       Function<CallToolRequest, String> body) {

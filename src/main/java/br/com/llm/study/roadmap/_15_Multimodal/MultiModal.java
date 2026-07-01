@@ -75,8 +75,6 @@ public class MultiModal {
 
         Files.write(Path.of("reply.mp3"), response.body());
 
-        //call to chat
-
         payload = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
             ChatCompletionRequest.of(MODEL_CHAT, messages));
 
@@ -88,7 +86,6 @@ public class MultiModal {
             .header("Content-Type", "application/json")
             .POST(BodyPublishers.ofString(payload))
             .build();
-
 
         HttpResponse<String> responseChat = httpClient.send(request, BodyHandlers.ofString());
 
@@ -106,22 +103,15 @@ public class MultiModal {
 
         messages.add(choice.message());
 
-
       }
     }
 
-    // Speech-to-text: transcribe the mp3 we just generated, closing the
-    // text -> speech -> text round trip.
     Path replyAudio = Path.of("reply.mp3");
     if (Files.exists(replyAudio)) {
       System.out.println("Transcricao do reply.mp3: " + transcribe(httpClient, replyAudio));
     }
   }
 
-  /**
-   * Uploads the audio file to /v1/audio/transcriptions as multipart/form-data -- the
-   * one OpenAI call here that is not a JSON body -- and returns the recognized text.
-   */
   private static String transcribe(HttpClient httpClient, Path audioPath)
       throws IOException, InterruptedException {
     String boundary = "----java" + System.currentTimeMillis();

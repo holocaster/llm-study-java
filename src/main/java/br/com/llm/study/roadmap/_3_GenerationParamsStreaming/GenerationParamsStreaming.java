@@ -37,7 +37,6 @@ public class GenerationParamsStreaming {
         var responseFormat = ChatCompletionRequest.ResponseFormat.jsonSchema(
                 new ChatCompletionRequest.JsonSchema("question", true, schema));
 
-        // We own the history: this list grows every turn.
         List<Message> messages = new ArrayList<>();
         messages.add(systemMessage);
         messages.add(userMessage);
@@ -50,7 +49,6 @@ public class GenerationParamsStreaming {
             try {
                 StringBuilder full = new StringBuilder();
 
-                // Rebuild the request each turn from the current history.
                 ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest(
                         "gpt-5.1", messages, 0.7, 300, true, responseFormat);
                 final String payload = OBJECT_MAPPER.writeValueAsString(chatCompletionRequest);
@@ -72,15 +70,15 @@ public class GenerationParamsStreaming {
                 }
                 AtomicReference<String> finishReason = new AtomicReference<>();
                 response.body().forEach(line -> {
-                    if (!line.startsWith("data: ")) return;          // skip blank lines
+                    if (!line.startsWith("data: ")) return;
                     String json = line.substring(6);
-                    if (json.equals("[DONE]")) return;               // stream sentinel
+                    if (json.equals("[DONE]")) return;
                     try {
                         var chunk = OBJECT_MAPPER.readValue(json, ChatCompletionChunk.class);
                         var choice = chunk.choices().get(0);
                         String piece = choice.delta().content();
                         if (piece != null) {
-                            System.out.print(piece);   // print tokens as they stream in
+                            System.out.print(piece);
                             System.out.flush();
                             full.append(piece);
                         }
@@ -90,7 +88,7 @@ public class GenerationParamsStreaming {
                         e.printStackTrace();
                     }
                 });
-                System.out.println();   // end the streamed line
+                System.out.println();
 
                 if (finishReason.get() != null) {
                     System.out.println("[finish_reason: " + finishReason + "]");

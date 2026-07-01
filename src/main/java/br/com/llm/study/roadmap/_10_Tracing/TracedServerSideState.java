@@ -13,16 +13,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 
-// #10 based on #9: the server-side-state chat loop (Responses API,
-// previous_response_id), now wrapped in trace spans.
-//
-// A "trace" is nothing but structured logging of the loop. Here the tree is:
-//   agent (whole run)
-//     -> llm  (turn 1 model call)
-//     -> llm  (turn 2 model call)
-//     ...
-// There are no tool spans because #9 has no tools - if tools were added, each
-// execution would be a llm.child(name, "tool") and show up nested here.
 public class TracedServerSideState {
 
     private static final String OPENAI_API_KEY = Objects.requireNonNull(System.getenv("OPENAI_API_KEY"));
@@ -46,7 +36,6 @@ public class TracedServerSideState {
         String previousId = null;
         boolean done = false;
 
-        // Open the root workflow span; the Java analogue of `with trace("chat"):`.
         try (Span root = Tracer.trace("chat")) {
             root.input(input.get(0).content());
 
@@ -61,9 +50,6 @@ public class TracedServerSideState {
                 String text;
                 String responseId;
 
-                // Span around this turn's model call. It auto-nests under the root
-                // via the thread-local stack and closes itself at the end of the
-                // try block - no manual end() or parent wiring.
                 try (Span llm = Tracer.span("responses", "llm")) {
                     llm.input(Map.of(
                             "input", List.copyOf(input),
@@ -96,8 +82,6 @@ public class TracedServerSideState {
                             .orElse("(no text output)");
                     responseId = parsed.id();
 
-                    // output records the assistant text and the response id that
-                    // the NEXT turn chains to via previous_response_id.
                     llm.output(Map.of("id", responseId, "text", text));
                 }
 
@@ -112,7 +96,7 @@ public class TracedServerSideState {
                     previousId = responseId;
                 }
             }
-        } // root span closes here -> Tracer prints the full nested trace
+        }
 
         httpClient.close();
     }

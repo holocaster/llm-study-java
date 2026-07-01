@@ -15,23 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Two image directions in one exercise:
- *   1. Generation -- a text prompt to /v1/images/generations returns a PNG.
- *   2. Vision     -- that same PNG goes back into the chat endpoint as an inline
- *                    image part, and the model describes it.
- *
- * Feeding the generated image straight into vision keeps the exercise self-contained:
- * no external image file is needed. Note the two shapes -- generation is its own
- * endpoint, while vision is the ordinary chat call with an image part in `content`.
- */
 public class Image {
 
   private static final String OPENAI_API_KEY = Objects.requireNonNull(
       System.getenv("OPENAI_API_KEY"));
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-  // If your org lacks gpt-image-1 access, switch to "dall-e-3" (also returns b64_json).
+
   private static final String IMAGE_MODEL = "gpt-image-1";
   private static final String VISION_MODEL = "gpt-4o-mini";
   private static final String ENDPOINT_IMAGES = "https://api.openai.com/v1/images/generations";
@@ -39,20 +29,18 @@ public class Image {
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
   static void main() throws IOException, InterruptedException {
-    // Part 1: generation -- text prompt -> PNG.
+
     String prompt = "A moon with mars near it, photorealistic.";
     String base64Png = generateImage(prompt);
     Path out = Path.of("generated.png");
     Files.write(out, Base64.getDecoder().decode(base64Png));
     System.out.println("Saved generated image to " + out.toAbsolutePath());
 
-    // Part 2: vision -- feed that image back in and describe it.
     String description = describeImage(
         "Describe this image in one sentence.", "image/png", base64Png);
     System.out.println("Vision description: " + description);
   }
 
-  /** POST /v1/images/generations -> base64 PNG (data[0].b64_json). */
   private static String generateImage(String prompt) throws IOException, InterruptedException {
     Map<String, Object> body = Map.of(
         "model", IMAGE_MODEL,
@@ -66,7 +54,6 @@ public class Image {
         .path("data").get(0).path("b64_json").asText();
   }
 
-  /** Vision: send the image inline as a data URL in the message content array. */
   private static String describeImage(String prompt, String mime, String base64)
       throws IOException, InterruptedException {
     String dataUrl = "data:" + mime + ";base64," + base64;
@@ -79,7 +66,7 @@ public class Image {
     Map<String, Object> body = Map.of("model", VISION_MODEL, "messages", List.of(message));
 
     String payload = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(body);
-    // Trim the inline base64 so the log stays readable; the real payload is unchanged.
+
     System.out.println("Payload: " + payload.replaceAll("(base64,)[^\"]+", "$1<...>"));
     HttpResponse<String> response = post(ENDPOINT_CHAT, payload);
     ChatCompletionResponse parsed = OBJECT_MAPPER.readValue(

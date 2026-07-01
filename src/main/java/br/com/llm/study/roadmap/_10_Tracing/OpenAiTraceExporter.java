@@ -12,20 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-// Sends a by-hand Span tree to OpenAI so it shows up under Logs -> Agent Traces.
-//
-// This is exactly what the openai-agents-python SDK's BackendSpanExporter does:
-//   POST https://api.openai.com/v1/traces/ingest
-//   headers: Authorization: Bearer <key>, Content-Type: json, OpenAI-Beta: traces=v1
-//   body:    {"data": [ <trace obj>, <span obj>, <span obj>, ... ]}
-//
-// The dashboard's columns are DERIVED by the backend from the spans we send:
-//   Workflow  = trace.workflow_name
-//   Flow      = the chain of "agent" spans
-//   Tools     = count of "function" spans
-//   Handoffs  = count of "handoff" spans
-//   Exec time = latest ended_at - earliest started_at
-// So to populate a column you must emit spans of the matching type.
 public final class OpenAiTraceExporter {
 
     private static final String INGEST_ENDPOINT = "https://api.openai.com/v1/traces/ingest";
@@ -34,7 +20,6 @@ public final class OpenAiTraceExporter {
     private OpenAiTraceExporter() {
     }
 
-    // Build the {"data":[...]} payload and POST it. Returns the HTTP status, or -1 on failure.
     public static int export(Span root) {
         String apiKey = System.getenv("OPENAI_API_KEY");
         if (apiKey == null || apiKey.isBlank()) {
@@ -42,10 +27,9 @@ public final class OpenAiTraceExporter {
             return -1;
         }
 
-        String traceId = "trace_" + UUID.randomUUID().toString().replace("-", "");      // 32 hex
+        String traceId = "trace_" + UUID.randomUUID().toString().replace("-", "");
         List<Map<String, Object>> data = new ArrayList<>();
 
-        // The trace object: workflow_name is what the dashboard shows under "Workflow".
         Map<String, Object> trace = new LinkedHashMap<>();
         trace.put("object", "trace");
         trace.put("id", traceId);
@@ -54,8 +38,6 @@ public final class OpenAiTraceExporter {
         trace.put("metadata", null);
         data.add(trace);
 
-        // Walk the span tree. The root is emitted as the top "agent" span so it
-        // appears in the Flow; its children nest under it via parent_id.
         emit(root, traceId, null, data);
 
         try {
@@ -83,7 +65,6 @@ public final class OpenAiTraceExporter {
         }
     }
 
-    // Emit one trace.span per Span, depth-first, preserving the parent link.
     private static void emit(Span span, String traceId, String parentSpanId, List<Map<String, Object>> data) {
         String spanId = "span_" + UUID.randomUUID().toString().replace("-", "").substring(0, 24);
 
@@ -103,7 +84,6 @@ public final class OpenAiTraceExporter {
         }
     }
 
-    // Map our span type to the SDK's span_data shapes (span_data.py).
     private static Map<String, Object> spanData(Span span) {
         Map<String, Object> sd = new LinkedHashMap<>();
         switch (span.getType()) {
@@ -115,7 +95,7 @@ public final class OpenAiTraceExporter {
                 sd.put("output_type", null);
             }
             case "llm", "responses", "generation" -> {
-                // A "response" span links the trace to the actual Responses log entry.
+
                 String responseId = responseId(span);
                 sd.put("type", "response");
                 sd.put("response_id", responseId);
@@ -136,7 +116,6 @@ public final class OpenAiTraceExporter {
         return sd;
     }
 
-    // Our llm span stores output as a Map with the response "id" - pull it out.
     private static String responseId(Span span) {
         if (span.getOutput() instanceof Map<?, ?> m && m.get("id") != null) {
             return m.get("id").toString();

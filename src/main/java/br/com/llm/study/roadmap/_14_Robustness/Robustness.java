@@ -12,24 +12,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Robustness, by hand. The LLM call is incidental: this is the production pattern
- * for surviving a flaky network and a busy server -- classify the failure, retry
- * only the transient ones, and back off exponentially with jitter between tries.
- */
 public class Robustness {
 
   private static final String OPENAI_API_KEY = Objects.requireNonNull(
       System.getenv("OPENAI_API_KEY"));
   private static final String URL = "https://api.openai.com/v1/chat/completions";
 
-  // Tunable knobs. Real clients use ~1s base; kept short here so the demo is quick.
   private static final int MAX_RETRIES = 3;
   private static final Duration BASE_DELAY = Duration.ofMillis(500);
   private static final Duration MAX_DELAY = Duration.ofSeconds(10);
 
-  // Transient HTTP statuses worth retrying. Everything else (400/401/403/404...)
-  // is the caller's fault and will fail the same way every time -- do not retry it.
   private static final Set<Integer> RETRYABLE_STATUS = Set.of(429, 500, 502, 503, 504);
 
   private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
@@ -61,11 +53,6 @@ public class Robustness {
     System.out.println();
   }
 
-  /**
-   * Sends the request, retrying only transient failures (retryable status codes and
-   * network-level errors). Returns the response for success and non-retryable errors
-   * alike -- the caller decides what a 4xx means. Throws once retries are exhausted.
-   */
   static HttpResponse<String> sendWithRetry(HttpRequest request)
       throws IOException, InterruptedException {
     int attempt = 0;
@@ -75,14 +62,14 @@ public class Robustness {
             request, HttpResponse.BodyHandlers.ofString());
 
         if (!RETRYABLE_STATUS.contains(response.statusCode())) {
-          return response; // 2xx success or a non-retryable error -> hand back as-is
+          return response;
         }
         if (attempt >= MAX_RETRIES) {
           System.out.println("  gave up after " + (attempt + 1) + " attempts (HTTP "
               + response.statusCode() + ")");
           return response;
         }
-        // Honor the server's Retry-After when it tells us; otherwise back off ourselves.
+
         int currentAttempt = attempt;
         Duration delay = retryAfter(response).orElseGet(() -> backoff(currentAttempt));
         System.out.println("  attempt " + (attempt + 1) + " -> HTTP " + response.statusCode()
@@ -90,7 +77,7 @@ public class Robustness {
         Thread.sleep(delay.toMillis());
         attempt++;
 
-      } catch (IOException e) { // includes HttpTimeoutException: network-level, retryable
+      } catch (IOException e) {
         if (attempt >= MAX_RETRIES) {
           System.out.println("  gave up after " + (attempt + 1) + " attempts ("
               + e.getClass().getSimpleName() + ")");
@@ -105,7 +92,6 @@ public class Robustness {
     }
   }
 
-  /** Exponential backoff (BASE * 2^attempt, capped) plus up to 50% random jitter. */
   private static Duration backoff(int attempt) {
     long exponential = BASE_DELAY.toMillis() * (1L << attempt);
     long capped = Math.min(exponential, MAX_DELAY.toMillis());
@@ -113,7 +99,6 @@ public class Robustness {
     return Duration.ofMillis(Math.min(capped + jitter, MAX_DELAY.toMillis()));
   }
 
-  /** Reads a numeric Retry-After header (seconds), if the server sent one. */
   private static Optional<Duration> retryAfter(HttpResponse<?> response) {
     return response.headers().firstValue("retry-after")
         .filter(value -> !value.isBlank() && value.chars().allMatch(Character::isDigit))

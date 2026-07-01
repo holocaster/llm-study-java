@@ -17,15 +17,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-/**
- * Video understanding by frame sampling. A chat LLM does not ingest video directly;
- * the standard trick is to sample frames and send them as multiple image parts in one
- * message. "Video" here = many stills + the model reasoning over the sequence.
- *
- * Extract frames first, e.g. one every 2 seconds, into a frames/ directory:
- *   ffmpeg -i input.mp4 -vf fps=1/2 frames/frame-%03d.jpg
- * then run this exercise. MAX_FRAMES caps how many we send (cost and payload size).
- */
 public class Video {
 
   private static final String OPENAI_API_KEY = Objects.requireNonNull(
@@ -55,7 +46,6 @@ public class Video {
     System.out.println("Video description: " + description);
   }
 
-  /** First MAX_FRAMES image files in the directory, sorted by name (frame order). */
   private static List<Path> listFrames(Path dir, int max) throws IOException {
     if (!Files.isDirectory(dir)) {
       return List.of();
@@ -74,7 +64,6 @@ public class Video {
     return name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png");
   }
 
-  /** Send all frames as image parts in a single chat message and return the description. */
   private static String describeFrames(String prompt, List<Path> frames)
       throws IOException, InterruptedException {
     List<Map<String, Object>> content = new ArrayList<>();

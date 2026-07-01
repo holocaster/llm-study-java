@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
-/** A small agent harness: REPL -> reusable agent loop -> gated tools -> persisted history. */
 public class Harness {
 
     private static final String API_KEY = Objects.requireNonNull(
@@ -100,7 +99,6 @@ public class Harness {
         System.out.println("Goodbye.");
     }
 
-    /** Run a conversation to its final answer, mutating the given history. Returns the final text. */
     private String runConversation(List<AnthropicMessage> messages,
                                    String systemPrompt,
                                    ToolRegistry tools) throws Exception {

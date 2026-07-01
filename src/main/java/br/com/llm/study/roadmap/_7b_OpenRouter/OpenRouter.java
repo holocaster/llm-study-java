@@ -37,7 +37,6 @@ public class OpenRouter {
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
                 .build();
 
-
         System.out.println(payload);
 
         try {

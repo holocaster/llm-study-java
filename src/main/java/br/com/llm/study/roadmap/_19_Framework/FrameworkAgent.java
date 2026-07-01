@@ -11,17 +11,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
-/**
- * #19 capstone: the hand-written agent loop from #6 is GONE. We annotate the task
- * operations with @Tool, hand them to AiServices, and the FRAMEWORK owns tool discovery,
- * the call/execute/feed-back loop, and conversation memory. This is what #6 built by hand.
- */
 public class FrameworkAgent {
 
   private static final String OPENAI_API_KEY = Objects.requireNonNull(
       System.getenv("OPENAI_API_KEY"));
 
-  /** Thin @Tool wrappers over the same TaskStore the raw exercises use. */
   public static class TaskTools {
     private final TaskStore store = new TaskStore();
 
@@ -47,7 +41,6 @@ public class FrameworkAgent {
     }
   }
 
-  /** The contract: the framework generates the implementation (and runs the loop). */
   public interface Assistant {
     String chat(String userMessage);
   }
@@ -65,8 +58,6 @@ public class FrameworkAgent {
         .chatMemory(MessageWindowChatMemory.withMaxMessages(20))
         .build();
 
-    // Interactive loop. Unlike Framework.java, we keep no message list -- the
-    // MessageWindowChatMemory inside the service records every turn (and tool call).
     Scanner scanner = new Scanner(System.in);
     while (true) {
       System.out.print("You (type 'exit' to quit): ");

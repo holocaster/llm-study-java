@@ -5,12 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-/**
- * Response shape when a chat completion returns audio -- requested with
- * modalities ["text","audio"] on an audio-capable model (e.g. gpt-4o-audio-preview).
- * The assistant message has no text content; instead it carries an `audio` object:
- * the base64-encoded audio bytes plus the transcript of what they say.
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record AudioResponse(
         String id,
@@ -34,12 +28,6 @@ public record AudioResponse(
             Audio audio
     ) {
 
-        /**
-         * Folds this audio reply into a plain conversation message. The public Message
-         * has no audio field, so the transcript stands in as the text content (audio
-         * replies have null content). Note this keeps only the text -- the audio bytes
-         * and the audio id needed to reference it server-side are dropped.
-         */
         public br.com.llm.study.roadmap.dtos.Message toMessage() {
             String text = content != null ? content
                     : (audio != null ? audio.transcript() : null);

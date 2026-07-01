@@ -18,23 +18,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-/**
- * #19, multimodal edition: the same image/audio/video calls from #15/#15b/#15c, but the
- * framework (LangChain4j) owns the HTTP, JSON, and message shaping. We only build typed
- * Content objects (ImageContent, Audio) and read a typed response -- no raw payloads.
- *
- * Inputs are reused from the earlier exercises so this runs in continuation:
- *   image -> generated.png (#15b)   audio -> reply.mp3 (#15)   video -> frames/ (#15c)
- *
- * Note: OpenAI has no video input, so "video" is frame sampling (many ImageContent),
- * exactly as in #15c -- LangChain4j's VideoContent targets providers like Gemini.
- */
 public class FrameworkMultimodal {
 
   private static final String OPENAI_API_KEY = Objects.requireNonNull(
       System.getenv("OPENAI_API_KEY"));
   private static final String VISION_MODEL = "gpt-4o-mini";
-  private static final String TRANSCRIBE_MODEL = "whisper-1"; // NOT gpt-4o-mini-tts (that is TTS)
+  private static final String TRANSCRIBE_MODEL = "whisper-1";
   private static final int MAX_FRAMES = 5;
 
   static void main() throws IOException {
@@ -49,7 +38,6 @@ public class FrameworkMultimodal {
     video(chatModel);
   }
 
-  /** Vision: send an image as a typed ImageContent and read back a description. */
   private static void image(OpenAiChatModel chatModel) throws IOException {
     Path file = Path.of("generated.png");
     if (!Files.exists(file)) {
@@ -57,15 +45,13 @@ public class FrameworkMultimodal {
       return;
     }
     String base64 = Base64.getEncoder().encodeToString(Files.readAllBytes(file));
-    // The prompt must be a TextContent, not the first String arg -- that arg is the
-    // message NAME, and OpenAI rejects a name containing spaces.
+
     UserMessage message = UserMessage.from(
         TextContent.from("Describe this image in one sentence."),
         ImageContent.from(base64, "image/png"));
     System.out.println("[image] " + describe(chatModel, message));
   }
 
-  /** Audio: transcribe a file with the framework's dedicated transcription model. */
   private static void audio() throws IOException {
     Path file = Path.of("reply.mp3");
     if (!Files.exists(file)) {
@@ -86,7 +72,6 @@ public class FrameworkMultimodal {
     System.out.println("[audio] transcript: " + text);
   }
 
-  /** Video by frame sampling: many ImageContent parts in one message (see class note). */
   private static void video(OpenAiChatModel chatModel) throws IOException {
     List<Path> frames = listFrames(Path.of("frames"), MAX_FRAMES);
     if (frames.isEmpty()) {

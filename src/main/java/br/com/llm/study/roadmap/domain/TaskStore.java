@@ -5,14 +5,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * In-memory backing store for the assistant's tools. Each public method maps to
- * one LLM tool the model can call:
- *   addTask      -> add_task
- *   listTasks    -> list_tasks
- *   completeTask -> complete_task
- *   searchNotes  -> search_notes
- */
 public class TaskStore {
 
     private final List<Task> tasks = new ArrayList<>();

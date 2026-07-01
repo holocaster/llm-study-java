@@ -48,7 +48,6 @@ public class AgentLoop {
         var responseFormat = ChatCompletionRequest.ResponseFormat.jsonSchema(
                 new ChatCompletionRequest.JsonSchema("question", true, schema));
 
-        // We own the history: this list grows every turn.
         List<Message> messages = new ArrayList<>();
         messages.add(systemMessage);
         messages.add(userMessage);
@@ -61,13 +60,13 @@ public class AgentLoop {
 
         boolean isOver = false;
         while (!isOver) {
-            // Safety cap: stop a misbehaving model from calling tools forever.
+
             if (++turns > maxTurns) {
                 System.out.println("Reached max turns (" + maxTurns + "), stopping.");
                 break;
             }
             try {
-                // Rebuild the request each turn from the current history.
+
                 ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest(
                         "gpt-4o-mini", messages, 0.7, null, null, responseFormat, TaskStoreUtils.tools());
                 final String payload = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(chatCompletionRequest);

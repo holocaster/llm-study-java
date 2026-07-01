@@ -15,15 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Evals, by hand. An eval is the test suite for the non-deterministic part of an LLM
- * app: a dataset of cases, a scorer, and an aggregate score you can compare before and
- * after a change. Two scorer kinds -- KEYWORD (deterministic) and JUDGE (a second LLM
- * call grading open-ended answers, reusing the structured-output pattern from #4).
- *
- * The "system under test" here is a plain completion (see answer()). Change the model
- * or the prompt, re-run, and watch the score move -- that is the whole point.
- */
 public class Evals {
 
   private static final String OPENAI_API_KEY = Objects.requireNonNull(
@@ -35,16 +26,10 @@ public class Evals {
   private static final String ENDPOINT = "https://api.openai.com/v1/chat/completions";
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-  // KEYWORD: the answer must contain an expected substring -- cheap and objective.
-  // JUDGE: an LLM grades the answer against a reference -- for open-ended answers.
   enum Scorer { KEYWORD, JUDGE }
 
-  // One test case. For KEYWORD, `expected` is a required substring; for JUDGE, it is
-  // the reference answer. In a real project this dataset lives in a JSON/CSV file;
-  // kept inline here so the exercise is self-contained and runnable as-is.
   record Case(String question, String expected, Scorer scorer) {}
 
-  // What the judge returns -- structured output, same shape pattern as exercise #4.
   record Verdict(boolean pass, String reason) {}
 
   private static final List<Case> DATASET = List.of(
@@ -64,7 +49,7 @@ public class Evals {
   static void main() throws IOException, InterruptedException {
     int passed = 0;
     for (Case testCase : DATASET) {
-      String answer = answer(testCase.question()); // the system under test
+      String answer = answer(testCase.question());
       boolean ok = switch (testCase.scorer()) {
         case KEYWORD -> scoreKeyword(answer, testCase.expected());
         case JUDGE -> scoreJudge(testCase.question(), testCase.expected(), answer);
@@ -78,7 +63,6 @@ public class Evals {
     System.out.printf("Score: %d/%d passed%n", passed, DATASET.size());
   }
 
-  /** The system being evaluated: a plain completion. Swap the model/prompt and re-run. */
   private static String answer(String question) throws IOException, InterruptedException {
     List<Message> messages = List.of(
         Message.system("Answer concisely."),
@@ -88,15 +72,10 @@ public class Evals {
     return response.choices().get(0).message().content().trim();
   }
 
-  /** Deterministic scorer: case-insensitive substring match. */
   private static boolean scoreKeyword(String answer, String expected) {
     return answer.toLowerCase().contains(expected.toLowerCase());
   }
 
-  /**
-   * LLM-as-judge: a second model call grades the candidate against the reference and
-   * returns structured {pass, reason}. Temperature 0 for consistent grading.
-   */
   private static boolean scoreJudge(String question, String reference, String candidate)
       throws IOException, InterruptedException {
     String prompt = """
@@ -127,7 +106,6 @@ public class Evals {
     return verdict.pass();
   }
 
-  /** One chat completion round-trip. Shared by the system under test and the judge. */
   private static ChatCompletionResponse chat(ChatCompletionRequest request)
       throws IOException, InterruptedException {
     String payload = OBJECT_MAPPER.writeValueAsString(request);

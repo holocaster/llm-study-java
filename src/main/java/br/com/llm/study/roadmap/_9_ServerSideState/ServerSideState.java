@@ -14,7 +14,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 
-
 public class ServerSideState {
 
     private static final String OPENAI_API_KEY = Objects.requireNonNull(System.getenv("OPENAI_API_KEY"));
@@ -36,7 +35,6 @@ public class ServerSideState {
                 "model", "gpt-4o-mini",
                 "input", input,
                 "instructions", "You are a helpful assistant for tech store. Ask 1 question"));
-//                "tools", responsesTools());
 
         String previousId = null;
         boolean done = false;

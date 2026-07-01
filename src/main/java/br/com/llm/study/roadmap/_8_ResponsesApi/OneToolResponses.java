@@ -17,11 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-// #8 part 2: #5 tool-calling re-pointed at the Responses API.
-// Same orchestration loop as #5/#6; only the shapes move:
-//   - tool defs are FLAT (no nested "function" wrapper)
-//   - the model's tool calls arrive as "function_call" items in "output"
-//   - results go back as "function_call_output" items in "input", keyed by call_id
 public class OneToolResponses {
 
     private static final String OPENAI_API_KEY = Objects.requireNonNull(System.getenv("OPENAI_API_KEY"));
@@ -34,9 +29,6 @@ public class OneToolResponses {
     static void main() throws IOException, InterruptedException {
         HttpClient httpClient = HttpClient.newHttpClient();
 
-        // Client-owned state (like #2): we resend the whole "input" list each turn.
-        // It accumulates user messages, the model's function_call items, and our
-        // function_call_output items.
         List<Object> input = new ArrayList<>();
         input.add(Map.of("role", "user",
                 "content", "Add a task to call the dentist tomorrow, then list my tasks."));
@@ -73,7 +65,7 @@ public class OneToolResponses {
                     .toList();
 
             if (functionCalls.isEmpty()) {
-                // No tool calls: print the final assistant text and stop the loop.
+
                 String text = parsed.output().stream()
                         .filter(item -> "message".equals(item.type()))
                         .flatMap(item -> item.content().stream())
@@ -89,8 +81,6 @@ public class OneToolResponses {
             for (ResponsesResponse.OutputItem call : functionCalls) {
                 System.out.println("Tool call: " + call.name() + " " + call.arguments());
 
-                // Echo the model's function_call back into input so the matching
-                // function_call_output has its call to refer to.
                 input.add(Map.of(
                         "type", "function_call",
                         "id", call.id(),
@@ -112,7 +102,6 @@ public class OneToolResponses {
                     result = Map.of("error", e.getMessage());
                 }
 
-                // Send the tool result as a function_call_output item, linked by call_id.
                 input.add(Map.of(
                         "type", "function_call_output",
                         "call_id", call.callId(),
@@ -123,8 +112,6 @@ public class OneToolResponses {
         httpClient.close();
     }
 
-    // Responses API tool defs are FLAT: {type, name, description, parameters} -
-    // no nested "function" wrapper like Chat Completions (#5 / TaskStoreUtils).
     private static List<Map<String, Object>> responsesTools() {
         return List.of(
                 tool("add_task", "Add a new task to the user's task list", Map.of(

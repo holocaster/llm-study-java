@@ -32,11 +32,9 @@ public class Embeddings {
 
     String query = "things to do for work";
 
-    // Embed every note in one batch call, then the query on its own.
     List<List<Double>> noteVectors = embed(notes);
     List<Double> queryVector = embed(List.of(query)).get(0);
 
-    // Rank notes by cosine similarity to the query, highest first.
     record Ranked(String note, double score) {}
     List<Ranked> ranked = new ArrayList<>();
     for (int i = 0; i < notes.size(); i++) {
@@ -51,7 +49,6 @@ public class Embeddings {
     }
   }
 
-  /** Embeds inputs in a single call; returns vectors ordered to match inputs. */
   private static List<List<Double>> embed(List<String> inputs)
       throws IOException, InterruptedException {
     String payload = OBJECT_MAPPER.writeValueAsString(
@@ -70,7 +67,6 @@ public class Embeddings {
     EmbeddingResponse embeddingResponse = OBJECT_MAPPER.readValue(response.body(),
         EmbeddingResponse.class);
 
-    // The API may return items out of order; each carries its input index.
     List<EmbeddingResponse.Item> items = new ArrayList<>(embeddingResponse.data());
     items.sort(Comparator.comparingInt(EmbeddingResponse.Item::index));
 
@@ -81,7 +77,6 @@ public class Embeddings {
     return vectors;
   }
 
-  /** Cosine similarity: dot(a, b) / (|a| * |b|). */
   private static double cosine(List<Double> a, List<Double> b) {
     double dot = 0;
     double normA = 0;

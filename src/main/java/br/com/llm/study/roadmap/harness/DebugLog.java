@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 
-/** Appends pretty-printed LLM request/response JSON to a file when HARNESS_DEBUG=1. No-op otherwise. */
 public class DebugLog {
 
     private final boolean enabled;
@@ -20,8 +19,6 @@ public class DebugLog {
         this.mapper = mapper;
     }
 
-    /** Append a timestamped "<label>\n<pretty json>" block. Never throws - a logging failure
-        must not break the harness. */
     public void log(String label, String json) {
         if (!enabled) {
             return;
@@ -34,7 +31,6 @@ public class DebugLog {
         }
     }
 
-    /** Re-serialize JSON with indentation; return the original string if it does not parse. */
     private String prettify(String json) {
         try {
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readTree(json));

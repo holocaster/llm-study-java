@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-// Responses API (POST /v1/responses): note "output" array instead of "choices".
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ResponsesResponse(
         String id,
@@ -16,8 +15,6 @@ public record ResponsesResponse(
         Usage usage
 ) {
 
-    // One entry in the "output" array. The "type" field discriminates:
-    // "message" carries text in "content"; "function_call" carries a tool call.
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record OutputItem(
             String type,

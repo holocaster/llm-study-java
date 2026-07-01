@@ -18,7 +18,7 @@ public class HelloCompletion {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule());
 
     public static void main(String[] args) {
-        
+
         final String payload = """
             {
                 "model": "gpt-4o-mini",
@@ -37,7 +37,6 @@ public class HelloCompletion {
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(payload))
             .build();
-
 
             System.out.println(payload);
 

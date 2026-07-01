@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
 
-/** Delegates a self-contained subtask to a fresh subagent and returns its final answer. */
 public class SpawnAgentTool implements Tool {
 
     private final AgentRunner runner;

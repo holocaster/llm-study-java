@@ -27,8 +27,7 @@ public class Rag {
   private static final String MODEL_EMBEDDING = "text-embedding-3-small";
   private static final String MODEL_CHAT = "gpt-4o-mini";
   private static final int TOP_K = 2;
-  // Drop retrieved notes weaker than this cosine score, so off-topic questions
-  // get no context and the model is told to say it does not know.
+
   private static final double MIN_SIMILARITY = 0.3;
 
   private static final String SYSTEM_PROMPT = """
@@ -57,10 +56,9 @@ public class Rag {
       if (reply == null || reply.equalsIgnoreCase("exit")) {
         isOver = true;
       } else {
-        // Embed every note in one batch call, then the query on its own.
+
         List<Double> queryVector = embed(List.of(reply)).get(0);
 
-        // Rank notes by cosine similarity to the query, highest first.
         record Ranked(String note, double score) {
 
         }
@@ -70,7 +68,6 @@ public class Rag {
         }
         ranked.sort(Comparator.comparingDouble(Ranked::score).reversed());
 
-        // Keep the top-k, then drop anything below the relevance threshold.
         List<Ranked> retrieved = ranked.subList(0, Math.min(TOP_K, ranked.size())).stream()
             .filter(r -> r.score() >= MIN_SIMILARITY)
             .toList();
@@ -81,7 +78,6 @@ public class Rag {
           System.out.printf("  %.4f  %s%n", r.score(), r.note());
         }
 
-        // Number each note so the model can cite it as [1], [2], ...
         StringBuilder context = new StringBuilder();
         for (int i = 0; i < retrieved.size(); i++) {
           context.append("[").append(i + 1).append("] ").append(retrieved.get(i).note()).append("\n");
@@ -121,9 +117,6 @@ public class Rag {
     }
   }
 
-  /**
-   * Embeds inputs in a single call; returns vectors ordered to match inputs.
-   */
   private static List<List<Double>> embed(List<String> inputs)
       throws IOException, InterruptedException {
     String payload = OBJECT_MAPPER.writeValueAsString(
@@ -142,7 +135,6 @@ public class Rag {
     EmbeddingResponse embeddingResponse = OBJECT_MAPPER.readValue(response.body(),
         EmbeddingResponse.class);
 
-    // The API may return items out of order; each carries its input index.
     List<EmbeddingResponse.Item> items = new ArrayList<>(embeddingResponse.data());
     items.sort(Comparator.comparingInt(EmbeddingResponse.Item::index));
 
@@ -153,9 +145,6 @@ public class Rag {
     return vectors;
   }
 
-  /**
-   * Cosine similarity: dot(a, b) / (|a| * |b|).
-   */
   private static double cosine(List<Double> a, List<Double> b) {
     double dot = 0;
     double normA = 0;

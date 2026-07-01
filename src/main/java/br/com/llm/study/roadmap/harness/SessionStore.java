@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Persists the conversation history as JSON so a session resumes across runs. */
 public class SessionStore {
 
     private final Path file;
